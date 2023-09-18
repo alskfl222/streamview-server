@@ -1,26 +1,30 @@
 import threading
 import datetime
-import uuid
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from request import request_worker, request_queue
 
-app = FastAPI()
+class StreamViewServer:
+    def __init__(self):
+        self.app = FastAPI()
+        self.controller_client = {}
+        self.app.websocket("/ws")(self.websocket_endpoint)
 
-controller_client = {}
+    async def websocket_endpoint(self, websocket: WebSocket):
+        await websocket.accept()
+        while True:
+            try:
+                json_data = await websocket.receive_json()
+                print(f"[APP]\t\t: {datetime.datetime.now():%Y-%m-%d %H:%M:%S} : {json_data}")
+                request_queue.put((self, websocket, json_data)) 
+            except WebSocketDisconnect:
+                break
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        try:
-            data = await websocket.receive_text()
-            print(f"[APP]\t\t: {datetime.datetime.now():%Y-%m-%d %H:%M:%S} : {data}")
-            request_queue.put((websocket, data))  # 웹소켓 및 데이터를 큐에 넣습니다.
-        except WebSocketDisconnect:
-            break
+    def run(self):
+        threading.Thread(target=request_worker, daemon=True).start()
+        
+        import uvicorn
+        uvicorn.run(self.app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
-    threading.Thread(target=request_worker, daemon=True).start()  # 워커 스레드를 시작합니다.
-
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    server = StreamViewServer()
+    server.run()

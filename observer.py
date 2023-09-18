@@ -1,17 +1,15 @@
 import os
 import sys
 import traceback
-import json
-import websocket
 import pytchat
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from message import ObserverMessage
 
-# load_dotenv()
+load_dotenv()
 
-# WS_SERVER = os.getenv("WS_SERVER_CLOUD") if os.getenv(
-#     "PY_ENV") == "production" else os.getenv("WS_SERVER_LOCAL")
-WS_SERVER = "ws://127.0.0.1:8000/ws"
+WS_SERVER = os.getenv("WS_SERVER_CLOUD") if os.getenv(
+    "PY_ENV") == "production" else os.getenv("WS_SERVER_LOCAL")
+print(WS_SERVER)
 
 
 class Observer():
@@ -43,7 +41,7 @@ class Observer():
                     command, args = self.handle_chat(item.message)
                     if command:
                         self.message.send_ws(
-                            user=item.author.name, args=args)
+                            user=item.author.name, type=self.commands[command], args=args)
             except:
                 traceback.print_exc()
                 print("BREAK")
