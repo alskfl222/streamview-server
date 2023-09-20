@@ -15,10 +15,13 @@ def request_worker():
                 break
             check_message = f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S} : {json_data}"
             print(f"[WORKER]\t: {check_message}")
-            sender = json_data["sender"]
-            if sender == "controller":
-                controller_handler(server, websocket, json_data)
-            time.sleep(1)
+            if "sender" in json_data.keys():
+                print("invalid message")
+            else:
+                sender = json_data["sender"]
+                if sender == "controller":
+                    controller_handler(server, websocket, json_data)
+                time.sleep(1)
         except:
             traceback.print_exc()
             continue
