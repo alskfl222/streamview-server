@@ -19,6 +19,11 @@ class StreamViewServer:
             }
         }
 
+    def health_check(self):
+        @self.app.get('/check')
+        def api_health_check(self):
+            return "api ok"
+
     async def websocket_endpoint(self, websocket: WebSocket):
         await websocket.accept()
         while True:
