@@ -8,6 +8,7 @@ class StreamViewServer:
     def __init__(self):
         self.app = FastAPI()
         self.controller_client = {}
+        self.app.get("/")(self.health_check)
         self.app.websocket("/ws")(self.websocket_endpoint)
         self.status = {
             "category": {
@@ -20,9 +21,7 @@ class StreamViewServer:
         }
 
     def health_check(self):
-        @self.app.get('/check')
-        def api_health_check(self):
-            return "api ok"
+        return "api ok"
 
     async def websocket_endpoint(self, websocket: WebSocket):
         await websocket.accept()
