@@ -1,6 +1,7 @@
 import datetime
 
-def controller_handler(server, websocket, json_data):
+async def controller_handler(server, websocket, json_data):
     check_message = f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S} : {json_data}"
     print(f"[HANDLER]\t: {check_message}")
+    return "OK"
     

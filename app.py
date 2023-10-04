@@ -38,7 +38,7 @@ class StreamViewServer:
         threading.Thread(target=request_worker, daemon=True).start()
 
         import uvicorn
-        uvicorn.run(self.app, host="0.0.0.0", port=5000)
+        uvicorn.run(self.app, host="0.0.0.0", port=5005)
 
 
 if __name__ == "__main__":
