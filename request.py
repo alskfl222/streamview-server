@@ -8,7 +8,6 @@ from handler.controller import controller_handler
 request_queue = queue.Queue()
 
 async def async_controller_handler(server, websocket, json_data):
-    # 기존의 controller_handler를 비동기로 변경하였습니다.
     await controller_handler(server, websocket, json_data)
 
 def request_worker():
