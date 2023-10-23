@@ -1,6 +1,6 @@
 from fastapi import  Request, HTTPException
 from firebase_admin import auth
-from app import server
+from db import db
 
 def get_current_user(request: Request) -> auth.UserRecord:
     auth_header = request.headers.get('Authorization', '')
@@ -11,10 +11,16 @@ def get_current_user(request: Request) -> auth.UserRecord:
     token = auth_header.split('Bearer ')[1]
     try:
         decoded_token = auth.verify_id_token(token)
-        return auth.get_user(decoded_token["uid"])
+        user = auth.get_user(decoded_token["uid"])
+        col_user = db["user"]
+        doc_user = col_user.find_one({"uid": user.uid})
+        if not doc_user:
+            doc_user = {
+                "uid": user.uid,
+                "email": user.email
+            }
+            col_user.insert_one(doc_user)
+        return user
     except:
         raise HTTPException(status_code=403, detail="Invalid token or expired")
 
-
-def get_server():
-    return server
