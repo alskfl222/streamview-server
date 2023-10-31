@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import List, Dict, Any
 import datetime
 import pymongo
 from fastapi import APIRouter, Depends
@@ -9,8 +9,11 @@ from db import db
 from util import remove_objectId
 
 
-class CurrentInsert(BaseModel):
+class CurrentModel(BaseModel):
     current: Dict[str, Any]
+
+class TodoModel(BaseModel):
+    todos: List[Dict[str, Any]]
 
 
 router = APIRouter(prefix="/controller")
@@ -41,7 +44,7 @@ def get_controller(user: auth.UserRecord = Depends(get_current_user)):
 
 @router.post("/current")
 def insert_current(
-    data: CurrentInsert, user: auth.UserRecord = Depends(get_current_user)
+    data: CurrentModel, user: auth.UserRecord = Depends(get_current_user)
 ):
     col_current = db["current"]
 
@@ -58,6 +61,29 @@ def insert_current(
             "status": "success",
             "message": "OK",
             "current": remove_objectId(doc_current),
+        }
+    else:
+        return {"status": "failed", "message": "Insert failed"}
+
+@router.post("/todo")
+def insert_todo(
+    data: TodoModel, user: auth.UserRecord = Depends(get_current_user)
+):
+    col_todo = db["current"]
+
+    doc_todo = {
+        "uid": user.uid,
+        "time": datetime.datetime.utcnow(),
+        "todos": data.todos,
+    }
+
+    result = col_todo.insert_one(doc_todo)
+
+    if result.inserted_id:
+        return {
+            "status": "success",
+            "message": "OK",
+            "todo": remove_objectId(doc_todo),
         }
     else:
         return {"status": "failed", "message": "Insert failed"}
