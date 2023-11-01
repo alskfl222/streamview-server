@@ -98,11 +98,10 @@ def get_todo(
             .next()
         )
     except:
-        today = datetime.now().date().isoformat()
         doc_todo = {
             "uid": user.uid,
             "time": datetime.now(),
-            "date": today,
+            "date": date,
             "todos": [],
         }
         col_todo.insert_one(doc_todo)
