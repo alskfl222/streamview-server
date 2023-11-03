@@ -39,24 +39,24 @@ async def current_websocket_endpoint(websocket: WebSocket, current_viewer_id: st
     current_viewers[current_viewer_id] = websocket
     print(f"{current_viewer_id} added to current viewers")
     
-    async def ping_client():
-        while True:
-            try:
-                await websocket.send_text("ping")
-                await asyncio.sleep(5) # 5초
-            except asyncio.CancelledError:
-                break
+    # async def ping_client():
+    #     while True:
+    #         try:
+    #             await websocket.send_text("ping")
+    #             await asyncio.sleep(5) # 5초
+    #         except asyncio.CancelledError:
+    #             break
 
-    ping_task = asyncio.create_task(ping_client())
+    # ping_task = asyncio.create_task(ping_client())
     
     try:
         while True:
             data = await websocket.receive_text()
-            if data == "pong":
-                print(f"Pong received from {current_viewer_id}")
-                continue
+            # if data == "pong":
+            #     print(f"Pong received from {current_viewer_id}")
+            #     continue
     except WebSocketDisconnect:
-        ping_task.cancel()  # Cancel the ping task on disconnect
+        # ping_task.cancel()  # Cancel the ping task on disconnect
         current_viewers.pop(current_viewer_id, None)
         print(f"{current_viewer_id} removed from current viewers")
 
