@@ -1,15 +1,27 @@
-import uuid
-import datetime
+import traceback
+import pymongo
 from fastapi import WebSocket
+from db import db
+from util import remove_objectId
 
+async def todo_handler(websocket: WebSocket, uid: str, date: str):
+    col_todo = db.todo
+    try:
+        doc_todo = (
+            col_todo.find({"uid": uid, "date": date})
+            .sort("time", pymongo.DESCENDING)
+            .limit(1)
+            .next()
+        )
+        print(type(doc_todo))
+        print(doc_todo)
+        doc_todo = remove_objectId(doc_todo)
+        doc_todo = {
+            **doc_todo,
+            'time': doc_todo['time'].isoformat(),
+        }
+        await websocket.send_json(doc_todo)
+    except:
+        traceback.print_exc()
+        return "no uid or no docs"
 
-async def current_handler(viewers, websocket: WebSocket, json_data):
-    check_message = f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S} : {json_data}"
-    print(f"[HANDLER]\t: {check_message}")
-    if json_data['type'] == 'init':
-        viewer_id = str(uuid.uuid4())
-        viewers[viewer_id] = {'websocket': websocket, 'type': "current"}
-        print(viewers)
-        await websocket.send_json({"type": 'init', "viewer_id": viewer_id})
-    if json_data['type'] == 'disconnect':
-        viewers.pop(json_data['viewer_id'], None)
