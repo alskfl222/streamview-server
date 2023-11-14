@@ -7,12 +7,12 @@ from firebase_admin import initialize_app, credentials
 from dotenv import load_dotenv
 from router import controller, viewer
 from worker import viewer_worker, viewer_queue
-from handler.viewer import todo_handler
+from viewer.todo import todo_viewers
+from handler.viewer import todo_viewer_init
 
 load_dotenv()
 
 app = FastAPI()
-todo_viewers: dict[str, dict[str, Any]] = {}
 
 
 threading.Thread(target=viewer_worker, daemon=True).start()
@@ -34,24 +34,22 @@ app.include_router(viewer.router)
 @app.websocket("/todo/{todo_viewer_id}")
 async def todo_websocket_endpoint(websocket: WebSocket, todo_viewer_id: str):
     await websocket.accept()
-    todo_viewers[todo_viewer_id] = {'websocket': websocket}
+    todo_viewers[todo_viewer_id] = {"websocket": websocket}
     print(f"{todo_viewer_id} added to todo viewers")
-    
+
     try:
         while True:
             data = await websocket.receive_json()
-            await todo_handler(websocket, data['uid'], data['date'])
+            await todo_viewer_init(websocket, data["uid"], data["date"])
     except WebSocketDisconnect:
         todo_viewers.pop(todo_viewer_id, None)
         print(f"{todo_viewer_id} removed from todo viewers")
     except:
-        print('another error')
+        print("another error")
         print(todo_viewers)
 
 
-origins = [
-    "https://alskfl.info"
-]
+origins = ["https://alskfl.info"]
 
 
 app.add_middleware(

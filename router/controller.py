@@ -1,16 +1,18 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, WebSocketDisconnect
 from pydantic import BaseModel
 from firebase_admin import auth
 import pymongo
 from dependency import get_current_user
 from db import db
+from viewer.todo import todo_viewers
 from util import remove_objectId
 
 
 class CurrentModel(BaseModel):
     current: Dict[str, Any]
+
 
 class TodoItem(BaseModel):
     id: str
@@ -21,6 +23,7 @@ class TodoItem(BaseModel):
     plannedStartTime: Optional[str] = None
     actualStartTime: Optional[str] = None
     endTime: Optional[str] = None
+
 
 class TodoData(BaseModel):
     date: str
@@ -53,6 +56,7 @@ def get_controller(user: auth.UserRecord = Depends(get_current_user)):
     doc_current = remove_objectId(doc_current)
     return doc_current
 
+
 @router.post("/current")
 def insert_current(
     data: CurrentModel, user: auth.UserRecord = Depends(get_current_user)
@@ -76,10 +80,11 @@ def insert_current(
     else:
         return {"status": "failed", "message": "Insert failed"}
 
+
 @router.get("/todo")
 def get_todo(
     date: Optional[str] = Query(None, format="date"),
-    user: auth.UserRecord = Depends(get_current_user)
+    user: auth.UserRecord = Depends(get_current_user),
 ):
     col_todo = db["todo"]
     if date is None:
@@ -108,22 +113,26 @@ def get_todo(
     doc_todo = remove_objectId(doc_todo)
     return doc_todo
 
-@router.post("/todo")
-def insert_todo(
-    data: TodoData, user: auth.UserRecord = Depends(get_current_user)
-):
-    col_todo = db.todo
 
+@router.post("/todo")
+async def insert_todo(data: TodoData, user: auth.UserRecord = Depends(get_current_user)):
+    col_todo = db.todo
     doc_todo = {
         "uid": user.uid,
         "time": datetime.now(),
         "date": data.date.split("T")[0],
         "todos": [todo.model_dump() for todo in data.todos],
     }
-
     result = col_todo.insert_one(doc_todo)
-
     if result.inserted_id:
+        updated_todo = remove_objectId(doc_todo)
+        updated_todo['time'] = updated_todo['time'].isoformat()
+        for viewer_id, viewer_info in todo_viewers.items():
+            try:
+                await viewer_info['websocket'].send_json(updated_todo)
+            except WebSocketDisconnect:
+                todo_viewers.pop(viewer_id)
+
         return {
             "status": "success",
             "message": "OK",

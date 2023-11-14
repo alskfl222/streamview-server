@@ -4,7 +4,8 @@ from fastapi import WebSocket
 from db import db
 from util import remove_objectId
 
-async def todo_handler(websocket: WebSocket, uid: str, date: str):
+
+async def todo_viewer_init(websocket: WebSocket, uid: str, date: str):
     col_todo = db.todo
     try:
         doc_todo = (
@@ -13,15 +14,12 @@ async def todo_handler(websocket: WebSocket, uid: str, date: str):
             .limit(1)
             .next()
         )
-        print(type(doc_todo))
-        print(doc_todo)
         doc_todo = remove_objectId(doc_todo)
         doc_todo = {
             **doc_todo,
-            'time': doc_todo['time'].isoformat(),
+            "time": doc_todo["time"].isoformat(),
         }
         await websocket.send_json(doc_todo)
     except:
         traceback.print_exc()
         return "no uid or no docs"
-
