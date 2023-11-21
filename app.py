@@ -7,8 +7,8 @@ from firebase_admin import initialize_app, credentials
 from dotenv import load_dotenv
 from router import controller, viewer
 from worker import viewer_worker, viewer_queue
-from viewer.todo import todo_viewers
-from handler.viewer import todo_viewer_init
+from viewer.todo import todo_viewers, todo_currents
+from handler.viewer import todo_init
 
 load_dotenv()
 
@@ -48,6 +48,22 @@ async def todo_viewer_endpoint(websocket: WebSocket, todo_viewer_id: str):
         print("another error")
         print(todo_viewers)
 
+@app.websocket("/todo/current/{todo_current_id}")
+async def todo_current_endpoint(websocket: WebSocket, todo_current_id: str):
+    await websocket.accept()
+    todo_currents[todo_current_id] = {"websocket": websocket}
+    print(f"{todo_current_id} added to todo currents")
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            await todo_current_init(websocket, data["uid"], data["date"])
+    except WebSocketDisconnect:
+        todo_currents.pop(todo_current_id, None)
+        print(f"{todo_current_id} removed from todo currents")
+    except:
+        print("another error")
+        print(todo_currents)
 
 origins = ["https://alskfl.info"]
 

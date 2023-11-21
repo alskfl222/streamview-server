@@ -5,7 +5,7 @@ from db import db
 from util import remove_objectId
 
 
-async def todo_viewer_init(websocket: WebSocket, uid: str, date: str):
+async def todo_init(websocket: WebSocket, uid: str, date: str):
     col_todo = db.todo
     try:
         doc_todo = (
