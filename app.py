@@ -40,7 +40,7 @@ async def todo_viewer_endpoint(websocket: WebSocket, todo_viewer_id: str):
     try:
         while True:
             data = await websocket.receive_json()
-            await todo_viewer_init(websocket, data["uid"], data["date"])
+            await todo_init(websocket, data["uid"], data["date"])
     except WebSocketDisconnect:
         todo_viewers.pop(todo_viewer_id, None)
         print(f"{todo_viewer_id} removed from todo viewers")
@@ -57,7 +57,7 @@ async def todo_current_endpoint(websocket: WebSocket, todo_current_id: str):
     try:
         while True:
             data = await websocket.receive_json()
-            await todo_current_init(websocket, data["uid"], data["date"])
+            await todo_init(websocket, data["uid"], data["date"])
     except WebSocketDisconnect:
         todo_currents.pop(todo_current_id, None)
         print(f"{todo_current_id} removed from todo currents")
