@@ -31,7 +31,7 @@ app.include_router(controller.router)
 app.include_router(viewer.router)
 
 
-@app.websocket("/todo/viewer/{todo_viewer_id}")
+@app.websocket("/viewer/todo/{todo_viewer_id}")
 async def todo_viewer_endpoint(websocket: WebSocket, todo_viewer_id: str):
     await websocket.accept()
     todo_viewers[todo_viewer_id] = {"websocket": websocket}
@@ -48,7 +48,7 @@ async def todo_viewer_endpoint(websocket: WebSocket, todo_viewer_id: str):
         print("another error")
         print(todo_viewers)
 
-@app.websocket("/todo/current/{todo_current_id}")
+@app.websocket("/viewer/current/{todo_current_id}")
 async def todo_current_endpoint(websocket: WebSocket, todo_current_id: str):
     await websocket.accept()
     todo_currents[todo_current_id] = {"websocket": websocket}
