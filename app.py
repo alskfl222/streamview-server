@@ -31,8 +31,8 @@ app.include_router(controller.router)
 app.include_router(viewer.router)
 
 
-@app.websocket("/todo/{todo_viewer_id}")
-async def todo_websocket_endpoint(websocket: WebSocket, todo_viewer_id: str):
+@app.websocket("/todo/viewer/{todo_viewer_id}")
+async def todo_viewer_endpoint(websocket: WebSocket, todo_viewer_id: str):
     await websocket.accept()
     todo_viewers[todo_viewer_id] = {"websocket": websocket}
     print(f"{todo_viewer_id} added to todo viewers")
